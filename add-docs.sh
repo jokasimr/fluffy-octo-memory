@@ -1,14 +1,17 @@
 #!/bin/bash
 
+
 upload_repo_url="https://uploads.github.com/repos/jokasimr/fluffy-octo-memory"
 
 repo_url="https://github.com/scipp/scipp"
 docs_url="https://github.com/scipp/scipp.github.io"
 
-pushd `mktemp -d`
+workdir=`mktemp -d`
+pushd $workdir
+
 git clone $repo_url repo
 git clone $docs_url docs
-cd repo 
+
 pwd
 
 # The releases included here are the ones that show up in the dropdown menu on the scipp docs page
@@ -20,17 +23,18 @@ do
         if [[ "$tag" =~ "$release"\.\d* ]]
         then
             echo $tag
-            # Build documentation manually ?
-            #git checkout $tag
-            #tox -e docs
-            #mv docs_html documentation-$tag
 
-            # Use already existing docs in scipp.github.io
-            cp -r ../docs/release/$release documentation-$tag
+            if [ -d "../docs/release/$release" ];
+            then
+                # Use already existing docs in scipp.github.io
+                cp -r ../docs/release/$release documentation-$tag
+            else
+                continue
+            fi
 
             zip -r documentation-$tag.zip documentation-$tag
 
-            curl -L \
+            echo curl -L \
               -X POST \
               -H "Accept: application/vnd.github+json" \
               -H "Authorization: Bearer $GITHUB_TOKEN" \
@@ -39,9 +43,9 @@ do
               -d '{"tag_name":"'"$tag"'","target_commitish":"master","name":"'"$tag"'","body":"Description of the release","draft":false,"prerelease":false,"generate_release_notes":false}'
 
             echo sleep 10 before uploading assets...
-            sleep 10
+            echo sleep 10
 
-            curl -L \
+            echo curl -L \
                 -X POST \
                 -H "Accept: application/vnd.github+json" \
                 -H "Authorization: Bearer $GITHUB_TOKEN" \
@@ -55,3 +59,4 @@ do
 done
 
 popd
+rm -rf $workdir
