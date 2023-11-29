@@ -1,8 +1,8 @@
 #!/bin/bash
 
 
-upload_repo_url="https://uploads.github.com/repos/scipp/scipp"
-api_repo_url="https://api.github.com/repos/scipp/scipp"
+upload_repo_url="https://uploads.github.com/repos/jokasimr/fluffy-octo-memory"
+api_repo_url="https://api.github.com/repos/jokasimr/fluffy-octo-memory"
 
 repo_url="https://github.com/scipp/scipp"
 docs_url="https://github.com/scipp/scipp.github.io"
@@ -36,6 +36,28 @@ do
 
             zip -r documentation-$tag.zip documentation-$tag
 
+            #curl -L \
+            #  -X POST \
+            #  -H "Accept: application/vnd.github+json" \
+            #  -H "Authorization: Bearer $GITHUB_TOKEN" \
+            #  -H "X-GitHub-Api-Version: 2022-11-28" \
+            #  https://api.github.com/repos/jokasimr/fluffy-octo-memory/git/tags \
+            #  -d '{"tag":"'$tag'","message":"initial version","object":"b108df12d94d7801d602448e4394e7aacda812e5","type":"commit","tagger":{"name":"Johannes Kasimir","email":"johannes.kasimir@ess.eu","date":"2023-11-29T09:00:00+01:00"}}'
+
+            #echo sleep 10 after creating tag...
+            #sleep 10
+
+            curl -L \
+              -X POST \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              https://api.github.com/repos/jokasimr/fluffy-octo-memory/releases \
+              -d '{"tag_name":"'"$tag"'","target_commitish":"main","name":"'"$tag"'","body":"Description of the release","draft":false,"prerelease":false,"generate_release_notes":false}'
+
+            echo sleep 5 after creating release...
+            sleep 5
+
             release_id=`curl -L \
                 -H "Accept: application/vnd.github+json" \
                 -H "Authorization: Bearer $GITHUB_TOKEN" \
@@ -44,11 +66,12 @@ do
                 | jq '.id' \
                 | tr -d '\n'`
 
-            echo "Found release id $release_id for tag $tag"
-            echo Sleep 10 before uploading documentation asset... does the release id and the tag look right?
+            echo found release id $release_id
+
+            echo sleep 10 after getting the release ID...
             sleep 10
 
-            echo curl -L \
+            curl -L \
                 -X POST \
                 -H "Accept: application/vnd.github+json" \
                 -H "Authorization: Bearer $GITHUB_TOKEN" \
@@ -58,8 +81,9 @@ do
                 --data-binary "@documentation-$tag.zip"
 
             echo
-            echo Sleep 10 after uploading assets... does the response look good?
+            echo sleep 10 after uploading assets...
             sleep 10
+
 
         fi
     done
