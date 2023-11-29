@@ -17,14 +17,21 @@ cd repo
 pwd
 
 # The releases included here are the ones that show up in the dropdown menu on the scipp docs page
-for release in 23.11 23.08 23.07 23.05 23.03 23.01 22.11 0.17 0.16 0.15 0.14 0.13 0.12 0.11 0.10 0.9 0.8
-do 
+scipp_docs_release_directories=`\
+    echo 23.11 23.08 23.07 23.05 23.03 23.01 22.11 0.17 0.16 0.15 0.14 0.13 0.12 0.11 0.10 0.9 0.8 \
+    | sed 's/\(\d*\)\.0\(\d*\)/\1.\2/g' \
+    | tr -d '\n'`
+
+
+for release in do $scipp_docs_release_directories
     # Find all release tags (including minor releases)
     for tag in `git tag --list`
     do
         if [[ "$tag" =~ "$release"\.\d* ]]
         then
-            echo $tag
+            echo Tag: $tag, Release directory: $release
+            echo Sleep for 10s before zipping directory
+            sleep 10
 
             if [ -d "../docs/release/$release" ];
             then
